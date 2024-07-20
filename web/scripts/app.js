@@ -1479,40 +1479,49 @@ export class ComfyApp {
 		await api.storeSettings(settings);
 	}
 
+	async #getUserName() {
+		const userName = await api.getUserName();
+		console.log("User Name", userName);
+		return userName;
+	}
+
 	async #setUser() {
-		const userConfig = await api.getUserConfig();
-		this.storageLocation = userConfig.storage;
-		if (typeof userConfig.migrated == "boolean") {
-			// Single user mode migrated true/false for if the default user is created
-			if (!userConfig.migrated && this.storageLocation === "server") {
-				// Default user not created yet
-				await this.#migrateSettings();
-			}
-			return;
-		}
+		// const userConfig = await api.getUserConfig();
+		// this.storageLocation = userConfig.storage;
+		// if (typeof userConfig.migrated == "boolean") {
+		// 	// Single user mode migrated true/false for if the default user is created
+		// 	if (!userConfig.migrated && this.storageLocation === "server") {
+		// 		// Default user not created yet
+		// 		await this.#migrateSettings();
+		// 	}
+		// 	return;
+		// }
 
 		this.multiUserServer = true;
-		let user = localStorage["Comfy.userId"];
-		const users = userConfig.users ?? {};
-		if (!user || !users[user]) {
-			// This will rarely be hit so move the loading to on demand
-			const { UserSelectionScreen } = await import("./ui/userSelection.js");
-		
-			this.ui.menuContainer.style.display = "none";
-			const { userId, username, created } = await new UserSelectionScreen().show(users, user);
-			this.ui.menuContainer.style.display = "";
+		let localUsername = localStorage["Comfy.userName"];
+		const SSOUsername = await this.#getUserName();
+		console.log("Local User and SSO User", localUsername, SSOUsername);
 
-			user = userId;
-			localStorage["Comfy.userName"] = username;
-			localStorage["Comfy.userId"] = user;
-
-			if (created) {
-				api.user = user;
-				await this.#migrateSettings();
+		const resp = await api.createUser(SSOUsername.userName);
+		console.log("Create User Response", resp);
+		if (resp.status >= 300) {
+			let message = "Error creating user: " + resp.status + " " + resp.statusText;
+			try {
+				const res = await resp.json();								
+				if(res.error) {
+					message = res.error;
+				}
+			} catch (error) {
 			}
+			throw new Error(message);
 		}
 
-		api.user = user;
+		const userId = resp.userId;			
+		// localUsername = userId;
+		localStorage["Comfy.userName"] = SSOUsername.userName;
+		localStorage["Comfy.userId"] = userId;
+		api.user = userId;
+		await this.#migrateSettings();
 
 		this.ui.settings.addSetting({
 			id: "Comfy.SwitchUser",

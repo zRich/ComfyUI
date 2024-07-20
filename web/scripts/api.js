@@ -329,23 +329,37 @@ class ComfyApi extends EventTarget {
 	 * Gets user configuration data and where data should be stored
 	 * @returns { Promise<{ storage: "server" | "browser", users?: Promise<string, unknown>, migrated?: boolean }> }
 	 */
-	async getUserConfig() {
-		return (await this.fetchApi("/users")).json();
-	}
+	// async getUserConfig() {
+	// 	return (await this.fetchApi("/users")).json();
+	// }
 
 	/**
 	 * Creates a new user
 	 * @param { string } username
 	 * @returns The fetch response
 	 */
-	createUser(username) {
-		return this.fetchApi("/users", {
+	async createUser(username) {
+		const resp = await this.fetchApi("/user", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ username }),
 		});
+
+		if (resp.status >= 300) {
+			let message = "Error creating user: " + resp.status + " " + resp.statusText;
+			try {
+				const res = await resp.json();
+				if (res.error) {
+					message = res.error;
+				}
+			} catch (error) {
+			}
+			throw new Error(message);
+		}
+
+		return resp.json();
 	}
 
 	/**
@@ -412,6 +426,10 @@ class ComfyApi extends EventTarget {
 			method: "POST",
 			body: options?.stringify ? JSON.stringify(data) : data,
 			...options,
+			headers: {
+				"Content-Type": "application/json",
+				...options.headers,
+			},
 		});
 		if (resp.status !== 200 && options?.throwOnError !== false) {
 			throw new Error(`Error storing user data file '${file}': ${resp.status} ${(await resp).statusText}`);
@@ -473,6 +491,14 @@ class ComfyApi extends EventTarget {
 			throw new Error(`Error getting user data list '${dir}': ${resp.status} ${resp.statusText}`);
 		}
 		return resp.json();
+	}
+
+	/**
+	 * get the current user
+	 * @returns { Promise<{"userName": string}> }
+	 */
+	async getUserName() {
+		return (await this.fetchApi("/userName")).json();
 	}
 }
 
