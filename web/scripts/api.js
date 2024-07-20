@@ -494,11 +494,21 @@ class ComfyApi extends EventTarget {
 	}
 
 	/**
-	 * get the current user
-	 * @returns { Promise<{"userName": string}> }
+	 * login user, returns keycloak id token and access token
+	 * @returns { Promise<{ id_token: {exp: number, iat: number, aud: string, sub: string, preferred_username: string, azp: string, sid: string, at_hash: string, name: string, acr: string, jti: string, email_verified: boolean, typ: string, given_name: string, nonce: string, iss: string, auth_time: number, email: string, family_name: string}, access_token: string }> }
 	 */
-	async getUserName() {
-		return (await this.fetchApi("/userName")).json();
+
+	async login() {
+		return (await this.fetchApi("/login")).json();		
+	}
+
+	async getUserName() {		
+		const resp = await this.login();
+		//store id token and access token in local storage
+
+		localStorage.setItem("id_token", JSON.stringify(resp.id_token));
+		localStorage.setItem("access_token", resp.access_token);
+		return resp.id_token.preferred_username;
 	}
 }
 

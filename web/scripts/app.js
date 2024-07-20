@@ -1481,7 +1481,6 @@ export class ComfyApp {
 
 	async #getUserName() {
 		const userName = await api.getUserName();
-		console.log("User Name", userName);
 		return userName;
 	}
 
@@ -1498,12 +1497,10 @@ export class ComfyApp {
 		// }
 
 		this.multiUserServer = true;
-		let localUsername = localStorage["Comfy.userName"];
+		// let localUsername = localStorage["Comfy.userName"];
 		const SSOUsername = await this.#getUserName();
-		console.log("Local User and SSO User", localUsername, SSOUsername);
+		const resp = await api.createUser(SSOUsername);
 
-		const resp = await api.createUser(SSOUsername.userName);
-		console.log("Create User Response", resp);
 		if (resp.status >= 300) {
 			let message = "Error creating user: " + resp.status + " " + resp.statusText;
 			try {
@@ -1518,7 +1515,7 @@ export class ComfyApp {
 
 		const userId = resp.userId;			
 		// localUsername = userId;
-		localStorage["Comfy.userName"] = SSOUsername.userName;
+		localStorage["Comfy.userName"] = SSOUsername;
 		localStorage["Comfy.userId"] = userId;
 		api.user = userId;
 		await this.#migrateSettings();
