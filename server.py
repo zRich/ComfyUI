@@ -219,12 +219,16 @@ class PromptServer():
         @routes.post("/upload/image")
         async def upload_image(request):
             post = await request.post()
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user 
             return image_upload(post)
 
 
         @routes.post("/upload/mask")
         async def upload_mask(request):
             post = await request.post()
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
 
             def image_save_function(image, post, filepath):
                 original_ref = json.loads(post.get("original_ref"))
@@ -267,6 +271,8 @@ class PromptServer():
 
         @routes.get("/view")
         async def view_image(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             if "filename" in request.rel_url.query:
                 filename = request.rel_url.query["filename"]
                 filename,output_dir = folder_paths.annotated_filepath(filename)
@@ -355,6 +361,9 @@ class PromptServer():
 
         @routes.get("/view_metadata/{folder_name}")
         async def view_metadata(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
+
             folder_name = request.match_info.get("folder_name", None)
             if folder_name is None:
                 return web.Response(status=404)
@@ -378,6 +387,8 @@ class PromptServer():
 
         @routes.get("/system_stats")
         async def get_queue(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             device = comfy.model_management.get_torch_device()
             device_name = comfy.model_management.get_torch_device_name(device)
             vram_total, torch_vram_total = comfy.model_management.get_total_memory(device, torch_total_too=True)
@@ -404,6 +415,8 @@ class PromptServer():
 
         @routes.get("/prompt")
         async def get_prompt(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             return web.json_response(self.get_queue_info())
 
         def node_info(node_class):
@@ -429,6 +442,8 @@ class PromptServer():
 
         @routes.get("/object_info")
         async def get_object_info(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             out = {}
             for x in nodes.NODE_CLASS_MAPPINGS:
                 try:
@@ -440,6 +455,8 @@ class PromptServer():
 
         @routes.get("/object_info/{node_class}")
         async def get_object_info_node(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             node_class = request.match_info.get("node_class", None)
             out = {}
             if (node_class is not None) and (node_class in nodes.NODE_CLASS_MAPPINGS):
@@ -448,6 +465,8 @@ class PromptServer():
 
         @routes.get("/history")
         async def get_history(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             max_items = request.rel_url.query.get("max_items", None)
             if max_items is not None:
                 max_items = int(max_items)
@@ -455,11 +474,15 @@ class PromptServer():
 
         @routes.get("/history/{prompt_id}")
         async def get_history(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             prompt_id = request.match_info.get("prompt_id", None)
             return web.json_response(self.prompt_queue.get_history(prompt_id=prompt_id))
 
         @routes.get("/queue")
         async def get_queue(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             queue_info = {}
             current_queue = self.prompt_queue.get_current_queue()
             queue_info['queue_running'] = current_queue[0]
@@ -468,6 +491,8 @@ class PromptServer():
 
         @routes.post("/prompt")
         async def post_prompt(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             logging.info("got prompt")
             resp_code = 200
             out_string = ""
@@ -507,6 +532,8 @@ class PromptServer():
 
         @routes.post("/queue")
         async def post_queue(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             json_data =  await request.json()
             if "clear" in json_data:
                 if json_data["clear"]:
@@ -521,11 +548,15 @@ class PromptServer():
 
         @routes.post("/interrupt")
         async def post_interrupt(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             nodes.interrupt_processing()
             return web.Response(status=200)
 
         @routes.post("/free")
         async def post_free(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             json_data = await request.json()
             unload_models = json_data.get("unload_models", False)
             free_memory = json_data.get("free_memory", False)
@@ -537,6 +568,8 @@ class PromptServer():
 
         @routes.post("/history")
         async def post_history(request):
+            user = self.user_manager.get_request_user_id(request)
+            folder_paths.current_user = user
             json_data =  await request.json()
             if "clear" in json_data:
                 if json_data["clear"]:

@@ -57,7 +57,7 @@ class UserManager():
         user = self.get_request_user_id(request)
         path = user_root = os.path.abspath(os.path.join(root_dir, user))
 
-        # 如何 create_dir 为 True，且 user_root 不存在，则创建 user_root 目录
+        # 如果 create_dir 为 True，且 user_root 不存在，则创建 user_root 目录
         if create_dir and not os.path.exists(user_root):
             os.makedirs(user_root, exist_ok=True)
 

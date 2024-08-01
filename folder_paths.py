@@ -43,6 +43,7 @@ input_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), "inp
 user_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), "user")
 
 filename_list_cache = {}
+current_user = None
 
 if not os.path.exists(input_directory):
     try:
@@ -64,14 +65,29 @@ def set_input_directory(input_dir):
 
 def get_output_directory():
     global output_directory
+    # 如果 current_user 不为空，返回 output_directory/current_user
+    if current_user is not None:
+        # 如果 output_directory/current_user 不存在，则创建 output_directory/current_user 目录
+        if not os.path.exists(os.path.join(output_directory, current_user)):
+            os.makedirs(os.path.join(output_directory, current_user), exist_ok=True)
+        return os.path.join(output_directory, current_user)
+    
     return output_directory
 
 def get_temp_directory():
     global temp_directory
+    if current_user is not None:
+        if not os.path.exists(os.path.join(temp_directory, current_user)):
+            os.makedirs(os.path.join(temp_directory, current_user), exist_ok=True)
+        return os.path.join(temp_directory, current_user)
     return temp_directory
 
 def get_input_directory():
     global input_directory
+    if current_user is not None:
+        if not os.path.exists(os.path.join(input_directory, current_user)):
+            os.makedirs(os.path.join(input_directory, current_user), exist_ok=True)
+        return os.path.join(input_directory, current_user)
     return input_directory
 
 
@@ -251,6 +267,8 @@ def get_save_image_path(filename_prefix, output_dir, image_width=0, image_height
     filename = os.path.basename(os.path.normpath(filename_prefix))
 
     full_output_folder = os.path.join(output_dir, subfolder)
+    # 所有图像都保存着 output_dir 目录下，不保存在 output_dir/subfolder 目录下
+    # full_output_folder = output_dir
 
     if os.path.commonpath((output_dir, os.path.abspath(full_output_folder))) != output_dir:
         err = "**** ERROR: Saving image outside the output folder is not allowed." + \
