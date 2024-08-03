@@ -1,9 +1,13 @@
-torch
+torch==2.3.0
 torchsde
-torchvision
-torchaudio
+torchvision==0.18.0
+torchaudio==2.3.0
+xformers==0.0.26.post1
+diffusers[torch]==0.28.2
 einops
 transformers>=4.28.1
+flash-att==2.6.3
+insightface==0.7.3
 tokenizers>=0.13.3
 sentencepiece
 safetensors>=0.4.2

@@ -94,7 +94,7 @@ class PromptServer():
 
         @routes.get('/ws')
         async def websocket_handler(request):
-            ws = web.WebSocketResponse()
+            ws = web.WebSocketResponse(heartbeat=30)
             await ws.prepare(request)
             sid = request.rel_url.query.get('clientId', '')
             if sid:
