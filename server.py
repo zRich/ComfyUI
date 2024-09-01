@@ -104,7 +104,7 @@ class PromptServer():
 
         @routes.get('/ws')
         async def websocket_handler(request):
-            ws = web.WebSocketResponse()
+            ws = web.WebSocketResponse(heartbeat=30)
             await ws.prepare(request)
             sid = request.rel_url.query.get('clientId', '')
             if sid:
@@ -206,6 +206,7 @@ class PromptServer():
                     return web.Response(status=400)
 
                 subfolder = post.get("subfolder", "")
+                print("post data: ", post)
                 full_output_folder = os.path.join(upload_dir, os.path.normpath(subfolder))
                 filepath = os.path.abspath(os.path.join(full_output_folder, filename))
 

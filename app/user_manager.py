@@ -75,8 +75,10 @@ class UserManager():
         name = name.strip()
         if not name:
             raise ValueError("username not provided")
-        user_id = re.sub("[^a-zA-Z0-9-_]+", '-', name)
-        user_id = user_id + "_" + str(uuid.uuid4())
+        
+        user_id = name
+        # user_id = re.sub("[^a-zA-Z0-9-_]+", '-', name)
+        # user_id = user_id + "_" + str(uuid.uuid4())
 
         self.users[user_id] = name
 
